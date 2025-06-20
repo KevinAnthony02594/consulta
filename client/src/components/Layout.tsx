@@ -52,7 +52,7 @@ function Layout(): React.JSX.Element {
         </ul>
 
         <div className="hidden md:flex items-center gap-x-4">
-          <button onClick={logOut} className="text-sm font-semibold text-red-500 hover:text-red-700">Logout</button>
+          <button onClick={logOut} className="text-sm font-semibold text-red-500 hover:text-red-700">Cerrar Sesión</button>
           <ThemeToggle />
         </div>
 
