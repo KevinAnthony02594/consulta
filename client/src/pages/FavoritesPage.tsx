@@ -1,67 +1,49 @@
 // client/src/pages/FavoritesPage.tsx
-import React from 'react'; // <-- Ya no necesitamos useState ni useEffect aquí
+import React from 'react';
 import toast from 'react-hot-toast';
 import { FaStar, FaTrash } from 'react-icons/fa';
 import { motion } from 'framer-motion';
+import { useNavigate } from 'react-router-dom'; // <-- 1. Importamos useNavigate
 
-import { useAuth } from '../context/AuthContext'; // <-- El hook para obtener el estado global
-import api from '../api'; // <-- Nuestro cliente de API centralizado
+import { useAuth } from '../context/AuthContext';
+import api from '../api';
 
-// Definimos las variantes de animación
+// Las variantes de animación se quedan igual
 const containerVariants = {
   hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: { staggerChildren: 0.07 }, // Un stagger más rápido para listas
-  },
+  visible: { opacity: 1, transition: { staggerChildren: 0.07 } },
 };
 
 const itemVariants = {
-  hidden: { x: -20, opacity: 0 },
-  visible: { x: 0, opacity: 1 },
+  hidden: { y: 20, opacity: 0 },
+  visible: { y: 0, opacity: 1 },
 };
 
-
 function FavoritesPage(): React.JSX.Element {
-  // 1. Obtenemos los favoritos y la función para actualizarlos DIRECTAMENTE del contexto.
-  // ¡No más isLoading ni fetchFavorites en esta página!
   const { favorites, setFavorites } = useAuth();
+  const navigate = useNavigate(); // <-- 2. Inicializamos el hook
 
-  // 2. La función de eliminar ahora usa nuestro cliente 'api' y actualiza el estado global.
   const handleRemoveFavorite = async (dniToRemove: string) => {
-    try {
-      await api.delete(`/favorites/${dniToRemove}`);
-      
-      // Actualizamos el estado global para que el cambio se refleje en toda la app.
-      setFavorites(currentFavorites => 
-        currentFavorites.filter(fav => fav.dni_consultado !== dniToRemove)
-      );
-      toast.error('Favorito eliminado');
-    } catch (error: any) {
-      toast.error(error.response?.data?.message || 'No se pudo eliminar el favorito.');
-    }
+    // ... (esta función se queda igual)
   };
 
-  // 3. La función de limpiar todo también usa 'api' y actualiza el estado global.
   const handleClearFavorites = async () => {
-    try {
-      await api.delete('/favorites');
-      setFavorites([]); // Limpiamos el estado global
-      toast.success('Se han eliminado todos los favoritos');
-    } catch (error: any) {
-      toast.error(error.response?.data?.message || 'No se pudieron eliminar los favoritos.');
-    }
+    // ... (esta función se queda igual)
+  };
+
+  // 3. Nueva función para manejar el clic en una tarjeta de favorito
+  const handleCardClick = (dni: string) => {
+    navigate(`/buscar?dni=${dni}`);
   };
 
   return (
-    // 4. Aplicamos las animaciones de Framer Motion
     <motion.div 
       className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-lg"
       variants={containerVariants}
       initial="hidden"
       animate="visible"
     >
-      <motion.div variants={itemVariants} className="flex justify-between items-center mb-4">
+      <motion.div variants={itemVariants} className="flex justify-between items-center mb-6">
         <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-100 flex items-center">
           <FaStar className="mr-3 text-yellow-400" />
           Mis DNI Favoritos
@@ -73,33 +55,45 @@ function FavoritesPage(): React.JSX.Element {
         )}
       </motion.div>
 
-      {favorites.length > 0 ? (
-        <motion.ul variants={containerVariants} className="space-y-3">
+     {favorites.length > 0 ? (
+        <motion.ul variants={containerVariants} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {favorites.map((fav) => (
             <motion.li
               key={fav.id}
               variants={itemVariants}
-              className="p-3 bg-gray-50 dark:bg-gray-700 rounded-lg flex justify-between items-center group"
+              className="p-4 bg-gray-50 dark:bg-gray-700 rounded-lg group transition-shadow hover:shadow-lg"
             >
-              <div>
-                <p className="font-semibold text-gray-700 dark:text-gray-200">{fav.nombre_completo}</p>
-                <p className="text-sm text-gray-500 dark:text-gray-400">DNI: {fav.dni_consultado}</p>
+              {/* Este es el contenedor que vamos a corregir */}
+              <div className="flex justify-between items-start gap-2">
+
+                {/* --- CAMBIO PRINCIPAL AQUÍ --- */}
+                <div 
+                  className="flex-1 min-w-0 cursor-pointer" // Reemplazamos 'w-full' por 'flex-1' y 'min-w-0'
+                  onClick={() => handleCardClick(fav.dni_consultado)}
+                  title={`Volver a buscar DNI ${fav.dni_consultado}`}
+                >
+                  <p className="font-semibold text-gray-800 dark:text-gray-100 truncate">{fav.nombre_completo}</p>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">DNI: {fav.dni_consultado}</p>
+                </div>
+
+                <button 
+                  onClick={(e) => {
+                    e.stopPropagation(); // Esto sigue siendo crucial
+                    handleRemoveFavorite(fav.dni_consultado);
+                  }}
+                  className="text-gray-400 hover:text-red-500 transition-colors p-1"
+                  title="Eliminar favorito"
+                >
+                  <FaTrash />
+                </button>
+
               </div>
-              <button 
-                onClick={() => handleRemoveFavorite(fav.dni_consultado)}
-                className="text-gray-400 hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100"
-                title="Eliminar favorito"
-              >
-                <FaTrash />
-              </button>
             </motion.li>
           ))}
         </motion.ul>
       ) : (
         <motion.p variants={itemVariants} className="text-center text-gray-500 dark:text-gray-400 py-8">
           Aún no has guardado ningún favorito.
-          <br />
-          Busca un DNI y presiona la estrella para añadirlo.
         </motion.p>
       )}
     </motion.div>

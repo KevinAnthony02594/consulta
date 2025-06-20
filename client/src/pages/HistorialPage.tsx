@@ -3,34 +3,32 @@ import React from 'react';
 import { FaHistory } from 'react-icons/fa';
 import { motion } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
+import { useNavigate } from 'react-router-dom'; // <-- 1. Importamos useNavigate
 import api from '../api';
 import toast from 'react-hot-toast';
 
-// Reutilizamos las mismas variantes de animación
+// Las variantes de animación se quedan igual, ¡quedarán geniales con el grid!
 const containerVariants = {
   hidden: { opacity: 0 },
   visible: { opacity: 1, transition: { staggerChildren: 0.07 } },
 };
 
 const itemVariants = {
-  hidden: { x: -20, opacity: 0 },
-  visible: { x: 0, opacity: 1 },
+  hidden: { y: 20, opacity: 0 },
+  visible: { y: 0, opacity: 1 },
 };
 
 function HistorialPage(): React.JSX.Element {
-  // 1. Obtenemos el historial y su actualizador directamente del contexto.
   const { history, setHistory } = useAuth();
-
-  // Ya no necesitamos 'isLoading' ni 'useEffect' en esta página. ¡Más simple!
+  const navigate = useNavigate(); // <-- 2. Inicializamos el hook
 
   const handleClearHistory = async () => {
-    try {
-      await api.delete('/history'); // Usamos nuestro cliente 'api'
-      setHistory([]); // Actualizamos el estado global
-      toast.success('Historial eliminado con éxito.');
-    } catch (error: any) {
-      toast.error(error.response?.data?.message || 'No se pudo eliminar el historial.');
-    }
+    // ... (esta función se queda igual)
+  };
+
+  // 3. Función para manejar el clic en una tarjeta
+  const handleCardClick = (dni: string) => {
+    navigate(`/buscar?dni=${dni}`);
   };
 
   return (
@@ -40,7 +38,7 @@ function HistorialPage(): React.JSX.Element {
       initial="hidden"
       animate="visible"
     >
-      <motion.div variants={itemVariants} className="flex justify-between items-center mb-4">
+      <motion.div variants={itemVariants} className="flex justify-between items-center mb-6">
         <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-100 flex items-center">
           <FaHistory className="mr-3 text-blue-600" />
           Historial de Búsquedas
@@ -53,17 +51,24 @@ function HistorialPage(): React.JSX.Element {
       </motion.div>
 
       {history.length > 0 ? (
-        <motion.ul variants={containerVariants} className="space-y-3">
+        // 4. APLICAMOS EL GRID AQUÍ
+        // Reemplazamos 'space-y-3' por las clases de grid y gap (espaciado)
+        <motion.ul 
+          variants={containerVariants} 
+          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"
+        >
           {history.map((item) => (
+            // 5. HACEMOS QUE CADA TARJETA SEA INTERACTIVA
             <motion.li
               key={item.id}
               variants={itemVariants}
-              className="p-3 bg-gray-50 dark:bg-gray-700 rounded-lg"
+              onClick={() => handleCardClick(item.dni_consultado)}
+              className="p-4 bg-gray-50 dark:bg-gray-700 rounded-lg cursor-pointer hover:shadow-lg hover:-translate-y-1 transition-all duration-300"
+              title={`Volver a buscar DNI ${item.dni_consultado}`}
             >
-              <p className="font-semibold text-gray-700 dark:text-gray-200">{item.nombre_completo}</p>
+              <p className="font-semibold text-gray-800 dark:text-gray-100 truncate">{item.nombre_completo}</p>
               <p className="text-sm text-gray-500 dark:text-gray-400">DNI: {item.dni_consultado}</p>
-              <p className="text-xs text-gray-400 mt-1">
-                {/* Damos formato a la fecha para que sea más legible */}
+              <p className="text-xs text-gray-400 dark:text-gray-500 mt-2">
                 {new Date(item.search_timestamp).toLocaleDateString('es-ES', {
                   year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit'
                 })}

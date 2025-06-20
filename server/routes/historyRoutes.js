@@ -32,14 +32,16 @@ router.post('/', async (req, res) => {
     }
 
     try {
-        await db.query(
-            'INSERT INTO search_history (user_id, dni_consultado, nombre_completo) VALUES ($1, $2, $3)',
+        // Añadimos "RETURNING *" para que la consulta nos devuelva la fila que acaba de insertar.
+        const newHistoryItem = await db.query(
+            'INSERT INTO search_history (user_id, dni_consultado, nombre_completo) VALUES ($1, $2, $3) RETURNING *',
             [req.user.id, dni_consultado, nombre_completo]
         );
-        res.status(201).json({ message: 'Historial guardado con éxito.' });
+        res.status(201).json(newHistoryItem.rows[0]);
+
     } catch (error) {
         console.error(error.message);
-        res.status(500).send('Server error');
+        res.status(500).send('Server Error');
     }
 });
 
