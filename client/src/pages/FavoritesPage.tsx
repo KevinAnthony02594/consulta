@@ -24,12 +24,26 @@ function FavoritesPage(): React.JSX.Element {
   const navigate = useNavigate(); // <-- 2. Inicializamos el hook
 
   const handleRemoveFavorite = async (dniToRemove: string) => {
-    // ... (esta función se queda igual)
+    try {
+      await api.delete(`/favorites/${dniToRemove}`);
+      setFavorites(currentFavorites =>
+      currentFavorites.filter(fav => fav.dni_consultado !== dniToRemove)
+      );
+      toast.error('Favorito eliminado');
+      } catch (error: any) {
+      toast.error(error.response?.data?.message || 'No se pudo eliminar el favorito.');
+    }
   };
 
   const handleClearFavorites = async () => {
-    // ... (esta función se queda igual)
-  };
+    try {
+      await api.delete('/favorites');
+      setFavorites([]); 
+      toast.success('Se han eliminado todos los favoritos');
+      } catch (error: any) {
+      toast.error(error.response?.data?.message || 'No se pudieron eliminar los favoritos.');
+      }
+    };
 
   // 3. Nueva función para manejar el clic en una tarjeta de favorito
   const handleCardClick = (dni: string) => {
