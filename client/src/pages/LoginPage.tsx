@@ -75,9 +75,9 @@ function LoginPage(): React.JSX.Element {
             {isLoading ? <Spinner /> : 'Entrar'}
           </button>
         </form>
-        <p className="text-center text-sm text-gray-500 dark:text-gray-400 mt-6">
+        { /*<p className="text-center text-sm text-gray-500 dark:text-gray-400 mt-6">
           ¿No tienes una cuenta? <Link to="/register" className="text-blue-600 hover:underline font-medium">Regístrate</Link>
-        </p>
+        </p> */} 
       </motion.div>
     </div>
   );

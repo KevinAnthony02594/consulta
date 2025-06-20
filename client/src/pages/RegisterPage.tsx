@@ -71,7 +71,7 @@ function RegisterPage(): React.JSX.Element {
             className="w-full flex justify-center items-center bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 font-semibold transition-colors disabled:bg-blue-400"
             disabled={isLoading}
           >
-            {isLoading ? <Spinner /> : 'Registrarse'}
+            {isLoading ? <Spinner /> : 'Registrarse'} 
           </button>
         </form>
         <p className="text-center text-sm text-gray-500 dark:text-gray-400 mt-6">
