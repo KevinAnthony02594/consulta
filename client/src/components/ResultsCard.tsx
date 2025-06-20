@@ -2,20 +2,11 @@
 import React from 'react';
 import toast from 'react-hot-toast';
 import { useAuth } from '../context/AuthContext';
-import { PersonData } from '../types';
+import { PersonData, ResultsCardProps, InfoFieldProps } from '../types'; // <-- 1. Importamos todos los tipos necesarios
+import api from '../api'; // <-- 2. Importamos nuestro cliente de API
 import { FaUser, FaIdCard, FaBirthdayCake, FaUserCheck, FaMapMarkerAlt, FaGlobeAmericas, FaCity, FaBuilding, FaRegAddressCard, FaStar, FaRegStar, FaCopy } from "react-icons/fa";
 
-interface ResultsCardProps {
-  data: PersonData;
-}
-
-// Tipamos las props del InfoField para mayor seguridad
-interface InfoFieldProps {
-  icon: React.ReactNode;
-  label: string;
-  value: string | null | undefined;
-  className?: string; // Hacemos className opcional
-}
+// 3. Ya no definimos interfaces aquí. Las importamos.
 
 const InfoField = ({ icon, label, value, className = '' }: InfoFieldProps) => {
   const handleCopy = () => {
@@ -50,19 +41,15 @@ const calcularEdad = (fechaStr: string): number | null => {
 };
 
 function ResultsCard({ data }: ResultsCardProps): React.JSX.Element {
+  // 4. La lógica es ahora súper limpia: todo viene del contexto.
   const { favorites, setFavorites } = useAuth();
   const isFavorite = favorites.some(fav => fav.dni_consultado === data.numero);
 
   const handleToggleFavorite = async () => {
-    const token = localStorage.getItem('token');
-    
     try {
       if (isFavorite) {
-        const response = await fetch(`http://localhost:4000/api/favorites/${data.numero}`, {
-          method: 'DELETE',
-          headers: { 'Authorization': `Bearer ${token}` },
-        });
-        if (!response.ok) throw new Error('No se pudo quitar de favoritos.');
+        // 5. Usamos api.delete. No más headers manuales.
+        await api.delete(`/favorites/${data.numero}`);
         setFavorites(favorites.filter(fav => fav.dni_consultado !== data.numero));
         toast.error('Quitado de favoritos');
       } else {
@@ -70,28 +57,19 @@ function ResultsCard({ data }: ResultsCardProps): React.JSX.Element {
           dni_consultado: data.numero,
           nombre_completo: `${data.nombres} ${data.apellido_paterno} ${data.apellido_materno}`,
         };
-        const response = await fetch('http://localhost:4000/api/favorites', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}`},
-          body: JSON.stringify(favoriteRecord),
-        });
-        if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(errorData.message || 'No se pudo añadir a favoritos.');
-        }
-        const newFavoriteFromServer = await response.json();
-        setFavorites([newFavoriteFromServer, ...favorites]);
+        // 6. Usamos api.post.
+        const response = await api.post('/favorites', favoriteRecord);
+        setFavorites([response.data, ...favorites]); // El backend devuelve el nuevo favorito
         toast.success('¡Añadido a favoritos!');
       }
     } catch (error: any) {
-      toast.error(error.message);
+      toast.error(error.response?.data?.message || 'Ocurrió un error');
     }
   };
 
   const edad = calcularEdad(data.fecha_nacimiento);
   const edadClassName = edad !== null && edad < 18 ? 'text-red-600 bg-red-100 dark:bg-red-900/50 dark:text-red-300 px-2 py-1 rounded-md inline-block' : '';
 
-  // Corregimos y restauramos el array de fields
   const fields = [
     { icon: <FaUser />, label: 'Nombre Completo', value: `${data.nombres} ${data.apellido_paterno} ${data.apellido_materno}`, fullWidth: true },
     { icon: <FaIdCard />, label: 'DNI', value: data.numero },

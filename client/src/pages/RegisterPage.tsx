@@ -6,13 +6,9 @@ import { motion } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
 import Spinner from '../components/Spinner';
 import { FcGraduationCap } from 'react-icons/fc';
+import { RegisterData } from '../types'; // <-- 1. IMPORTAMOS el tipo global
 
-// 1. Definimos un tipo para la data del formulario
-interface RegisterFormData {
-  name: string;
-  email: string;
-  password: string;
-}
+// 2. ELIMINAMOS la 'interface' que estaba aquí. Ya no la necesitamos.
 
 const formVariants = {
   hidden: { opacity: 0, y: 50 },
@@ -20,31 +16,32 @@ const formVariants = {
 };
 
 function RegisterPage(): React.JSX.Element {
-  const [formData, setFormData] = useState<RegisterFormData>({ name: '', email: '', password: '' });
+  // 3. Usamos nuestro tipo 'RegisterData' importado
+  const [formData, setFormData] = useState<RegisterData>({ name: '', email: '', password: '' });
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  const { registerAction } = useAuth(); // Obtenemos la nueva función del contexto
+  const { registerAction } = useAuth();
   const navigate = useNavigate();
 
-  // 2. Tipamos el evento 'e'
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  // 3. El handleSubmit ahora es mucho más simple y limpio
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (isLoading) return;
 
     setIsLoading(true);
+    // Le pasamos el formData, que TypeScript ya sabe que es del tipo 'RegisterData'
     const success = await registerAction(formData);
     setIsLoading(false);
 
     if (success) {
-      navigate('/login'); // Si el registro fue exitoso, redirigimos
+      navigate('/login');
     }
   };
 
   return (
+    // El JSX se queda exactamente igual
     <div className="min-h-screen bg-gray-100 dark:bg-gray-900 flex items-center justify-center p-4">
       <motion.div
         className="bg-white dark:bg-gray-800 p-8 rounded-xl shadow-lg w-full max-w-md"
