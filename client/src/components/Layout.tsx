@@ -37,7 +37,7 @@ function Layout(): React.JSX.Element {
     <div className="w-full max-w-4xl mx-auto px-4">
       <nav className="bg-white/70 dark:bg-gray-800/70 backdrop-blur-lg p-4 rounded-xl shadow-lg mb-6 flex justify-between items-center sticky top-4 z-50">
         <div className="text-xl font-bold text-gray-800 dark:text-white">
-          <Link to="/">DNI App</Link> {/* Un logo o título */}
+          <Link to="/">App</Link> {/* Un logo o título */}
         </div>
 
         {/* --- NAVEGACIÓN PARA ESCRITORIO --- */}
